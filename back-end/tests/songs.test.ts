@@ -96,6 +96,12 @@ describe("GET na rota /recommendations", () => {
     expect(result.body).toBeInstanceOf(Object);
   });
 
+  it("Retorna 404 se não achar recomendação por ID", async () => {
+    const result = await supertest(app).get("/recommendations/1");
+
+    expect(result.status).toEqual(404);
+  });
+
   it("Retorna uma recomendação aleatoriamente", async () => {
     await supertest(app).post("/recommendations").send(createRecommendation());
 
@@ -127,9 +133,9 @@ describe("GET na rota /recommendations", () => {
 
     await supertest(app).post("/recommendations/3/upvote");
 
-    const result = await supertest(app).get(`/recommendations/top/${10}`);
+    const result = await supertest(app).get(`/recommendations/top/${5}`);
 
-    expect(result.body).toBeInstanceOf(Array);
+    expect(result.body.length).toEqual(5);
     expect(result.body[0].score).toBeGreaterThanOrEqual(result.body[1].score);
   });
 });
