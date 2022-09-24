@@ -1,7 +1,7 @@
 import supertest from "supertest";
 import { prisma } from "../src/database";
 import app from "../src/app";
-import createRecommendation from "./factories/recommendationFactory";
+import recommendationFactory from "./factories/recommendationFactory";
 
 beforeEach(async () => {
   await prisma.$executeRaw`TRUNCATE "recommendations" RESTART IDENTITY CASCADE`;
@@ -14,13 +14,13 @@ describe("POST na rota /recommendations", () => {
   it("Cria uma nova recomendação e retorna 201", async () => {
     const result = await supertest(app)
       .post("/recommendations")
-      .send(createRecommendation());
+      .send(recommendationFactory.createRecommendation());
 
     expect(result.status).toEqual(201);
   });
 
   it("Cria uma recomendação com nome repetido e retorna erro 409", async () => {
-    const recommendation = createRecommendation();
+    const recommendation = recommendationFactory.createRecommendation();
 
     await supertest(app).post("/recommendations").send(recommendation);
     const result = await supertest(app)
@@ -33,7 +33,7 @@ describe("POST na rota /recommendations", () => {
   it("Adiciona um upvote à uma recomendação e retorna 200", async () => {
     const recommendation = await supertest(app)
       .post("/recommendations")
-      .send(createRecommendation());
+      .send(recommendationFactory.createRecommendation());
 
     const result = await supertest(app).post("/recommendations/1/upvote");
 
@@ -47,7 +47,9 @@ describe("POST na rota /recommendations", () => {
   });
 
   it("Adiciona um downvote à uma recomendação e retorna 200", async () => {
-    await supertest(app).post("/recommendations").send(createRecommendation());
+    await supertest(app)
+      .post("/recommendations")
+      .send(recommendationFactory.createRecommendation());
 
     const result = await supertest(app).post("/recommendations/1/downvote");
 
@@ -61,7 +63,9 @@ describe("POST na rota /recommendations", () => {
   });
 
   it("Adiciona um downvote em uma recomendação com 5 downvotes e exclui", async () => {
-    await supertest(app).post("/recommendations").send(createRecommendation());
+    await supertest(app)
+      .post("/recommendations")
+      .send(recommendationFactory.createRecommendation());
 
     await downvote(1);
     await downvote(1);
@@ -78,8 +82,12 @@ describe("POST na rota /recommendations", () => {
 
 describe("GET na rota /recommendations", () => {
   it("Retorna as 10 últimas recomendações", async () => {
-    await supertest(app).post("/recommendations").send(createRecommendation());
-    await supertest(app).post("/recommendations").send(createRecommendation());
+    await supertest(app)
+      .post("/recommendations")
+      .send(recommendationFactory.createRecommendation());
+    await supertest(app)
+      .post("/recommendations")
+      .send(recommendationFactory.createRecommendation());
 
     const result = await supertest(app).get("/recommendations");
 
@@ -89,7 +97,9 @@ describe("GET na rota /recommendations", () => {
   });
 
   it("Retorna uma recomendação por ID", async () => {
-    await supertest(app).post("/recommendations").send(createRecommendation());
+    await supertest(app)
+      .post("/recommendations")
+      .send(recommendationFactory.createRecommendation());
 
     const result = await supertest(app).get("/recommendations/1");
 
@@ -103,7 +113,9 @@ describe("GET na rota /recommendations", () => {
   });
 
   it("Retorna uma recomendação aleatoriamente", async () => {
-    await supertest(app).post("/recommendations").send(createRecommendation());
+    await supertest(app)
+      .post("/recommendations")
+      .send(recommendationFactory.createRecommendation());
 
     const result = await supertest(app).get("/recommendations/random");
 
@@ -118,11 +130,21 @@ describe("GET na rota /recommendations", () => {
   });
 
   it("Retorna as recomendações com maior pontuação", async () => {
-    await supertest(app).post("/recommendations").send(createRecommendation());
-    await supertest(app).post("/recommendations").send(createRecommendation());
-    await supertest(app).post("/recommendations").send(createRecommendation());
-    await supertest(app).post("/recommendations").send(createRecommendation());
-    await supertest(app).post("/recommendations").send(createRecommendation());
+    await supertest(app)
+      .post("/recommendations")
+      .send(recommendationFactory.createRecommendation());
+    await supertest(app)
+      .post("/recommendations")
+      .send(recommendationFactory.createRecommendation());
+    await supertest(app)
+      .post("/recommendations")
+      .send(recommendationFactory.createRecommendation());
+    await supertest(app)
+      .post("/recommendations")
+      .send(recommendationFactory.createRecommendation());
+    await supertest(app)
+      .post("/recommendations")
+      .send(recommendationFactory.createRecommendation());
 
     await supertest(app).post("/recommendations/1/upvote");
     await supertest(app).post("/recommendations/1/upvote");
