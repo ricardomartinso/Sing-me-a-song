@@ -5,6 +5,7 @@ import { errorHandlerMiddleware } from "./middlewares/errorHandlerMiddleware.js"
 import recommendationRouter from "./routers/recommendationRouter.js";
 import dotenv from "dotenv";
 import e2eRouter from "./routers/e2eRouter.js";
+import seedRouter from "./routers/seedRouter.js";
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ app.use(express.json());
 
 if (process.env.NODE_ENV === "test") {
   app.use(e2eRouter);
+  app.use(seedRouter);
 }
 
 app.use("/recommendations", recommendationRouter);

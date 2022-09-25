@@ -1,4 +1,5 @@
 import { faker } from "@faker-js/faker";
+import { createManyRecommendations } from "../../types/recommendationTypes";
 
 function createRecommendation() {
   return {
@@ -40,6 +41,21 @@ function getXRecommendations(x: number) {
   return recommendationArray;
 }
 
+function getXRecommendationsWithoutId(x: number) {
+  const recommendationsNumber = x;
+  const recommendationArray = [];
+
+  for (let i = 0; i < recommendationsNumber; i++) {
+    recommendationArray.push({
+      name: faker.lorem.words(),
+      youtubeLink: `https://www.youtube.com/watch?v=${faker.lorem.word(11)}`,
+      score: faker.datatype.number({ min: -4, max: 1000 }),
+    });
+  }
+
+  return recommendationArray as createManyRecommendations;
+}
+
 function getGtRecommendations() {
   const recommendationArray = [];
 
@@ -76,4 +92,5 @@ export default {
   toDeleteRecommendation,
   getXRecommendations,
   getGtRecommendations,
+  getXRecommendationsWithoutId,
 };
