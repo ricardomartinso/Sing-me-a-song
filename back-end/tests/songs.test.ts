@@ -20,9 +20,13 @@ describe("POST na rota /recommendations", () => {
   });
 
   it("Cria uma recomendação com nome repetido e retorna erro 409", async () => {
-    const recommendation = recommendationFactory.createRecommendation();
+    const recommendation = {
+      name: "Mary on a cross",
+      youtubeLink: "https://www.youtube.com/watch?v=120ofa0fka",
+    };
 
     await supertest(app).post("/recommendations").send(recommendation);
+
     const result = await supertest(app)
       .post("/recommendations")
       .send(recommendation);
@@ -65,13 +69,8 @@ describe("POST na rota /recommendations", () => {
   it("Adiciona um downvote em uma recomendação com 5 downvotes e exclui", async () => {
     await supertest(app)
       .post("/recommendations")
-      .send(recommendationFactory.createRecommendation());
+      .send(recommendationFactory.toDeleteRecommendation());
 
-    await downvote(1);
-    await downvote(1);
-    await downvote(1);
-    await downvote(1);
-    await downvote(1);
     await downvote(1);
 
     const result = await supertest(app).post("/recommendations/1/downvote");
