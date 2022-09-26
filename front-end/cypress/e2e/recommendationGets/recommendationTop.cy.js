@@ -10,10 +10,13 @@ describe("Testa o 'top' de recomendações", () => {
 
     cy.wait("@getRecommendations");
 
-    cy.request("POST", "http://localhost:5000/seed/populate").then(
+    cy.request("POST", "http://localhost:5000/seed/populate/20").then(
       (response) => {
         cy.get("#data-cy-top").click();
       }
     );
+
+    cy.url().should("equal", "http://localhost:3000/top");
+    cy.get("article").should("have.length.lessThan", 11);
   });
 });

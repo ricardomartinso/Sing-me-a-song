@@ -17,5 +17,6 @@ describe("Testa se está recebendo as recomendações", () => {
     cy.wait(1000);
 
     cy.get("#data-cy-recommendation-name").should("be.visible");
+    cy.get("article").should("have.length.lessThan", 11);
   });
 });
