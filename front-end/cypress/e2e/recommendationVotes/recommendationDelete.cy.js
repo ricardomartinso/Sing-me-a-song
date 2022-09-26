@@ -1,14 +1,21 @@
+import { faker } from "@faker-js/faker";
+
 beforeEach(() => {
   cy.resetDatabase();
 });
 
 describe("Testa se downvote está funcionando com deleção", () => {
   it("Testa downvote", async () => {
+    const recommendation = {
+      name: faker.name.jobTitle(),
+      youtubeLink: "https://www.youtube.com/watch?v=213asd21s",
+    };
+
     cy.visit("http://localhost:3000");
 
-    cy.get('input[placeholder="Name"]').type(`MARY ON A CROSS 455`);
+    cy.get('input[placeholder="Name"]').type(`${recommendation.name}`);
     cy.get('input[placeholder="https://youtu.be/..."]').type(
-      "https://www.youtube.com/watch?v=213asd21s"
+      `${recommendation.youtubeLink}`
     );
 
     cy.intercept("POST", "/recommendations").as("recommendation");
@@ -18,13 +25,14 @@ describe("Testa se downvote está funcionando com deleção", () => {
 
     cy.wait("@recommendation");
 
-    cy.get("#data-cy-downvote").click();
-    cy.get("#data-cy-downvote").click();
-    cy.get("#data-cy-downvote").click();
-    cy.get("#data-cy-downvote").click();
-    cy.get("#data-cy-downvote").click();
-    cy.get("#data-cy-downvote").click();
+    for (let i = 0; i < 6; i++) {
+      cy.get("#data-cy-downvote").click();
+    }
 
-    cy.contains("No recommendations yet! Create your own :)");
+    cy.wait(2000);
+
+    cy.contains("No recommendations yet! Create your own :)").should(
+      "be.visible"
+    );
   });
 });

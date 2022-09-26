@@ -11,6 +11,6 @@ describe("Testa se está recebendo as recomendações", () => {
 
     cy.wait("@getRecommendations");
 
-    cy.url().should("equal", "http://localhost:5000/recommendation/home");
+    cy.url().should("equal", `http://localhost:5000/`);
   });
 });
