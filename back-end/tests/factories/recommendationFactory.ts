@@ -25,7 +25,11 @@ function toDeleteRecommendation() {
   };
 }
 
-function getXRecommendations(x: number) {
+function getXRecommendations(
+  x: number,
+  scoreFilterMin?: number,
+  scoreFilterMax?: number
+) {
   const recommendationsNumber = x;
   const recommendationArray = [];
 
@@ -34,7 +38,10 @@ function getXRecommendations(x: number) {
       id: faker.datatype.number({ min: 1, max: 1000 }),
       name: faker.lorem.words(),
       youtubeLink: `https://www.youtube.com/watch?v=${faker.lorem.word(11)}`,
-      score: faker.datatype.number({ min: -4, max: 1000 }),
+      score:
+        scoreFilterMin && scoreFilterMax
+          ? faker.datatype.number({ min: scoreFilterMin, max: scoreFilterMax })
+          : faker.datatype.number({ min: -4, max: 1000 }),
     });
   }
 

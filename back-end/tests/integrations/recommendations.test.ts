@@ -1,12 +1,15 @@
 import supertest from "supertest";
-import { prisma } from "../src/database";
-import app from "../src/app";
-import recommendationFactory from "./factories/recommendationFactory";
+import { prisma } from "../../src/database";
+import app from "../../src/app";
+import recommendationFactory from "../factories/recommendationFactory";
+import { populateDatabase } from "../../src/services/seedService";
+import { Recommendation } from "@prisma/client";
 
 beforeEach(async () => {
   await prisma.$executeRaw`TRUNCATE "recommendations" RESTART IDENTITY CASCADE`;
 });
 afterAll(async () => {
+  await prisma.$executeRaw`TRUNCATE "recommendations" RESTART IDENTITY CASCADE`;
   await prisma.$disconnect();
 });
 
@@ -35,7 +38,7 @@ describe("POST na rota /recommendations", () => {
   });
 
   it("Adiciona um upvote à uma recomendação e retorna 200", async () => {
-    const recommendation = await supertest(app)
+    await supertest(app)
       .post("/recommendations")
       .send(recommendationFactory.createRecommendation());
 
@@ -81,12 +84,9 @@ describe("POST na rota /recommendations", () => {
 
 describe("GET na rota /recommendations", () => {
   it("Retorna as 10 últimas recomendações", async () => {
-    await supertest(app)
-      .post("/recommendations")
-      .send(recommendationFactory.createRecommendation());
-    await supertest(app)
-      .post("/recommendations")
-      .send(recommendationFactory.createRecommendation());
+    const amount = 20;
+
+    await supertest(app).post(`/seed/populate/${amount}`); //creating 20 recommendations
 
     const result = await supertest(app).get("/recommendations");
 
@@ -112,12 +112,14 @@ describe("GET na rota /recommendations", () => {
   });
 
   it("Retorna uma recomendação aleatoriamente", async () => {
-    await supertest(app)
-      .post("/recommendations")
-      .send(recommendationFactory.createRecommendation());
+    const randomRecommendations = await supertest(app).post(
+      `/seed/populate/${5}`
+    );
 
     const result = await supertest(app).get("/recommendations/random");
+    delete result.body.id;
 
+    expect(JSON.parse(randomRecommendations.text)).toContainEqual(result.body);
     expect(result.body).toBeInstanceOf(Object);
     expect(result.status).toEqual(200);
   });
@@ -129,34 +131,12 @@ describe("GET na rota /recommendations", () => {
   });
 
   it("Retorna as recomendações com maior pontuação", async () => {
-    await supertest(app)
-      .post("/recommendations")
-      .send(recommendationFactory.createRecommendation());
-    await supertest(app)
-      .post("/recommendations")
-      .send(recommendationFactory.createRecommendation());
-    await supertest(app)
-      .post("/recommendations")
-      .send(recommendationFactory.createRecommendation());
-    await supertest(app)
-      .post("/recommendations")
-      .send(recommendationFactory.createRecommendation());
-    await supertest(app)
-      .post("/recommendations")
-      .send(recommendationFactory.createRecommendation());
+    const amount = 9;
+    await supertest(app).post(`/seed/populate/${amount}`); //creating 9 recommendations
 
-    await supertest(app).post("/recommendations/1/upvote");
-    await supertest(app).post("/recommendations/1/upvote");
-    await supertest(app).post("/recommendations/1/upvote");
+    const result = await supertest(app).get(`/recommendations/top/${amount}`);
 
-    await supertest(app).post("/recommendations/2/upvote");
-    await supertest(app).post("/recommendations/2/upvote");
-
-    await supertest(app).post("/recommendations/3/upvote");
-
-    const result = await supertest(app).get(`/recommendations/top/${5}`);
-
-    expect(result.body.length).toEqual(5);
+    expect(result.body.length).toEqual(amount);
     expect(result.body[0].score).toBeGreaterThanOrEqual(result.body[1].score);
   });
 });

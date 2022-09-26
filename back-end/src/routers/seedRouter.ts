@@ -3,6 +3,6 @@ import { populateDatabase } from "../controllers/seedController.js";
 
 const seedRouter = Router();
 
-seedRouter.post("/seed/populate", populateDatabase);
+seedRouter.post("/seed/populate/:recommendationsNumber", populateDatabase);
 
 export default seedRouter;

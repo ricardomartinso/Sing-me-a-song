@@ -3,6 +3,7 @@ import { recommendationRepository } from "../../src/repositories/recommendationR
 import recommendationFactory from "../factories/recommendationFactory";
 import { conflictError, notFoundError } from "../../src/utils/errorUtils";
 import { prisma } from "../../src/database";
+import { Recommendation } from "@prisma/client";
 
 beforeEach(async () => {
   await prisma.$executeRaw`TRUNCATE "recommendations" RESTART IDENTITY CASCADE`;
@@ -237,56 +238,11 @@ describe("Recommendations services get", () => {
   });
 
   it("Testa o GET para receber recomendações aleatórias com Math random maior que 0.7", async () => {
-    const recommendations = [
-      {
-        id: 3,
-        name: "teste recomendacao aleatoria 1",
-        youtubeLink: `https://www.youtube.com/watch?v=2asijrfi325`,
-        score: -5,
-      },
-      {
-        id: 4,
-        name: "teste recomendacao aleatoria 2",
-        youtubeLink: `https://www.youtube.com/watch?v=124fat6wte`,
-        score: -4,
-      },
-      {
-        id: 5,
-        name: "teste recomendacao aleatoria 3",
-        youtubeLink: `https://www.youtube.com/watch?v=xvcfqwca`,
-        score: -3,
-      },
-      {
-        id: 6,
-        name: "teste recomendacao aleatoria 6",
-        youtubeLink: `https://www.youtube.com/watch?v=gerwyw3341`,
-        score: -2,
-      },
-      {
-        id: 7,
-        name: "teste recomendacao aleatoria 7",
-        youtubeLink: `https://www.youtube.com/watch?v=as24dst436`,
-        score: 2,
-      },
-      {
-        id: 8,
-        name: "teste recomendacao aleatoria 8",
-        youtubeLink: `https://www.youtube.com/watch?v=axcqrt31`,
-        score: 5,
-      },
-      {
-        id: 9,
-        name: "teste recomendacao aleatoria 9",
-        youtubeLink: `https://www.youtube.com/watch?v=axcqrt31`,
-        score: 9,
-      },
-      {
-        id: 10,
-        name: "teste recomendacao aleatoria 10",
-        youtubeLink: `https://www.youtube.com/watch?v=axcqrt31`,
-        score: 10,
-      },
-    ];
+    const recommendations = recommendationFactory.getXRecommendations(
+      10,
+      -5,
+      10
+    );
 
     jest.spyOn(Math, "random").mockReturnValueOnce(0.8); // "lte"
 
@@ -305,6 +261,58 @@ describe("Recommendations services get", () => {
     expect(recommendationRepository.findAll).toBeCalled();
     expect(result.score).toBeGreaterThanOrEqual(-5);
     expect(result.score).toBeLessThanOrEqual(10);
+  });
+
+  it("Testa o caso em que os scores de recommendation estão todos maior que 10", async () => {
+    const randomRecommendations = recommendationFactory.getXRecommendations(
+      10,
+      10,
+      100
+    );
+
+    jest.spyOn(Math, "random").mockReturnValueOnce(Math.random());
+
+    jest
+      .spyOn(Math, "floor")
+      .mockReturnValueOnce(Math.floor(0.4 * randomRecommendations.length));
+
+    jest.spyOn(recommendationRepository, "findAll").mockResolvedValueOnce([]);
+
+    jest
+      .spyOn(recommendationRepository, "findAll")
+      .mockResolvedValueOnce(randomRecommendations);
+
+    const result: Recommendation =
+      await recommendationServices.recommendationService.getRandom();
+
+    expect(randomRecommendations).toContainEqual(result);
+    expect(result[1]).toBeUndefined();
+  });
+
+  it("Testa o caso em que os scores de recommendation estão todos menor que ou igual a 10", async () => {
+    const randomRecommendations = recommendationFactory.getXRecommendations(
+      10,
+      -5,
+      10
+    );
+
+    jest.spyOn(Math, "random").mockReturnValueOnce(Math.random());
+
+    jest
+      .spyOn(Math, "floor")
+      .mockReturnValueOnce(Math.floor(0.4 * randomRecommendations.length));
+
+    jest.spyOn(recommendationRepository, "findAll").mockResolvedValueOnce([]);
+
+    jest
+      .spyOn(recommendationRepository, "findAll")
+      .mockResolvedValueOnce(randomRecommendations);
+
+    const result: Recommendation =
+      await recommendationServices.recommendationService.getRandom();
+
+    expect(randomRecommendations).toContainEqual(result);
+    expect(result[1]).toBeUndefined();
   });
 
   it("Testa o GET nos random para retornar not found", async () => {
