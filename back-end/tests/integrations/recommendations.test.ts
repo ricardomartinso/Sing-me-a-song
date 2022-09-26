@@ -2,8 +2,6 @@ import supertest from "supertest";
 import { prisma } from "../../src/database";
 import app from "../../src/app";
 import recommendationFactory from "../factories/recommendationFactory";
-import { populateDatabase } from "../../src/services/seedService";
-import { Recommendation } from "@prisma/client";
 
 beforeEach(async () => {
   await prisma.$executeRaw`TRUNCATE "recommendations" RESTART IDENTITY CASCADE`;
